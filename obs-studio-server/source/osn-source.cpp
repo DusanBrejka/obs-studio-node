@@ -255,7 +255,6 @@ void osn::Source::GetProperties(void *data, const int64_t id, const std::vector<
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	bool updateSource = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	obs_properties_t *prp = obs_source_properties(src);
@@ -265,10 +264,8 @@ void osn::Source::GetProperties(void *data, const int64_t id, const std::vector<
 
 	obs_properties_destroy(prp);
 
-	if (updateSource) {
-		obs_source_update(src, settings);
-		MemoryManager::GetInstance().updateSourceCache(src);
-	}
+	obs_source_update(src, settings);
+
 	obs_data_release(settings);
 	AUTO_DEBUG;
 }
@@ -323,7 +320,7 @@ void osn::Source::GetSettings(void *data, const int64_t id, const std::vector<ip
 
 	obs_data_t *sets = obs_source_get_settings(src);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_full_json(sets)));
+	rval.push_back(ipc::value(obs_data_get_json_pretty(sets)));
 	obs_data_release(sets);
 	AUTO_DEBUG;
 }
@@ -356,7 +353,7 @@ void osn::Source::Update(void *data, const int64_t id, const std::vector<ipc::va
 	obs_data_t *updatedSettings = obs_source_get_settings(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_full_json(updatedSettings)));
+	rval.push_back(ipc::value(obs_data_get_json_pretty(updatedSettings)));
 	obs_data_release(updatedSettings);
 	AUTO_DEBUG;
 }

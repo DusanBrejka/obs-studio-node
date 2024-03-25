@@ -43,6 +43,22 @@ describe(testName, () => {
         }
     });
 
+    it('Check list of input types', () => {
+        // have to ignore vlc_source and mediasoupconnector as they are not available on CI
+        const ignoreInputTypes = ["vlc_source", "mediasoupconnector"];
+        let expectedInputTypes = ["audio_line", "image_source", "color_source", "color_source_v2", "color_source_v3", "slideshow", "mediasoupconnector", "browser_source", "ffmpeg_source", "text_gdiplus", "text_gdiplus_v2", "text_ft2_source", "text_ft2_source_v2", "vlc_source", "monitor_capture", "window_capture", "game_capture", "screen_capture", "dshow_input", "openvr_capture", "spout_capture", "wasapi_input_capture", "wasapi_output_capture", "wasapi_process_output_capture"];
+        
+        let missingDiff = expectedInputTypes.filter(x => !obs.inputTypes.includes(x));
+        missingDiff = missingDiff.filter(x => !ignoreInputTypes.includes(x));
+        let unexpectedDiff = obs.inputTypes.filter(x => !expectedInputTypes.includes(x)); 
+        if (missingDiff.length > 0 || unexpectedDiff.length > 0) {
+            logInfo(testName, 'Unexpected input types: ' + JSON.stringify( unexpectedDiff));
+            logInfo(testName, 'Missing input types: ' + JSON.stringify( missingDiff));
+        }
+        expect(missingDiff.length).to.equal(0, GetErrorMessage(ETestErrorMsg.InputsChanged));
+        expect(unexpectedDiff.length).to.equal(0, GetErrorMessage(ETestErrorMsg.InputsChanged));
+    });
+
     it('Create all types of input', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
@@ -58,7 +74,7 @@ describe(testName, () => {
     });
 
     it('Create all types of input with settings parameter', () => {
-        // Create all input sources available
+        // Create all input sources available with settings parameter
         obs.inputTypes.forEach(function(inputType) {
             if(obs.skipSource(inputType)) { return;}
             let settings: ISettings = {};
@@ -139,6 +155,8 @@ describe(testName, () => {
                     settings['method'] = 0;
                     settings['monitor_wgc'] = 0;
                     settings['compatibility'] = false;
+                    settings['monitor_id'] = "DUMMY";
+                    settings['force_sdr'] = false;
                     break;
                 }
                 case 'window_capture': {
@@ -157,6 +175,7 @@ describe(testName, () => {
                     settings['allow_transparency'] = true;
                     settings['default_height'] = 1080;
                     settings['default_width'] = 1920;
+                    settings['compat_info_visible'] = false;
                     break;
                 }
                 case 'dshow_input': {
@@ -201,7 +220,7 @@ describe(testName, () => {
                     settings['default_height'] = 1080;
                     settings['default_width'] = 1920;
                     break;
-                }                
+                }
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);

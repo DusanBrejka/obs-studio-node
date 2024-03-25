@@ -64,12 +64,18 @@
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
 #define ENCODER_NEW_HEVC_NVENC "jim_hevc_nvenc"
+#define ENCODER_AV1_NVENC "jim_av1_nvenc"
+#define ENCODER_AV1_SVT_FFMPEG "ffmpeg_svt_av1"
+#define ENCODER_AV1_AOM_FFMPEG "ffmpeg_aom_av1"
 
 #define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
 #define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
 #define APPLE_HARDWARE_VIDEO_ENCODER_M1 "com.apple.videotoolbox.videoencoder.ave.avc"
 
 #define ARCHIVE_NAME "archive_aac"
+
+#define SIMPLE_AUDIO_ENCODER_AAC "ffmpeg_aac"
+#define SIMPLE_AUDIO_ENCODER_OPUS "ffmpeg_opus"
 
 #define MAX_AUDIO_MIXES 6
 
@@ -170,9 +176,12 @@ public:
 	static void updateService(StreamServiceId serviceId);
 
 	// Encoders
-	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, int bitrate, const char *name, size_t idx);
+	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, const std::string &requested_id, int bitrate, const char *name,
+				       size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
+	static std::string GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, bool recording, const char *encoder);
 	static void createSimpleAudioStreamingEncoder();
+	static void createAdvancedAudioStreamingEncoder();
 	static bool createVideoRecordingEncoder();
 	static obs_encoder_t *getStreamingEncoder(StreamServiceId serviceId);
 	static void setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId);
@@ -184,12 +193,12 @@ public:
 	static void setAudioSimpleRecordingEncoder(obs_encoder_t *encoder);
 	static obs_encoder_t *getAudioAdvancedStreamingEncoder(void);
 	static void setAudioAdvancedStreamingEncoder(obs_encoder_t *encoder);
-	static void setupAudioEncoder(void);
-	static void clearAudioEncoder(void);
+	static void setupRecordingAudioEncoder(void);
+	static void clearRecordingAudioEncoder(void);
 	static obs_encoder_t *getArchiveEncoder(void);
 
 	// Outputs
-	static std::string getStreamingOutputName(StreamServiceId serviceId);
+	static std::string createStreamingOutputName(StreamServiceId serviceId);
 	static bool createStreamingOutput(StreamServiceId serviceId);
 	static bool createRecordingOutput(void);
 	static void createReplayBufferOutput(void);
@@ -214,14 +223,14 @@ public:
 	static void updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId);
 	static void updateAudioRecordingEncoder(bool isSimpleMode);
 	static void updateVideoRecordingEncoder(bool isSimpleMode);
-	static void updateAudioTracks(void);
+	static void updateRecordingAudioTracks(void);
 
 	// Update outputs
 	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t *output);
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
 	static void stopConnectingOutputs();
-
+	static void LoadRecordingPreset_Lossy(const char *encoderId);
 	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(StreamServiceId serviceId);
@@ -254,7 +263,6 @@ public:
 
 	static void duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uint64_t trackIndex = 0);
 
-	static bool EncoderAvailable(const char *encoder);
 	static void stopAllOutputs(void);
 
 	static bool startTwitchSoundtrackAudio(void);
